@@ -26,13 +26,9 @@
         },
 		
 		getEntry: function () {
-			var returnData = (arguments.length > 0) ? arguments[0] : true;
-			var autoInflate = (arguments.length > 1) ? arguments[1] : true;
+			var returnData = (arguments.length > 0) ? arguments[0] : false;
 			if (typeof(returnData) !== "boolean") {
-				returnData = true;
-			}
-			if (typeof(autoInflate) !== "boolean") {
-				autoInflate = true;
+				returnData = false;
 			}
 			var e = new JSUnzip.ZipEntry(this.fileContents);
 			if (typeof(e.data) === "string") {
@@ -40,7 +36,7 @@
 					return e;
 				}
 				if (8 === e.compressionMethod) {
-					return autoInflate ? JSInflate.inflate(e.data) : e.data;
+					return JSInflate.inflate(e.data);
 				}
 				else if (0 === e.compressionMethod) {
 					return e.data;

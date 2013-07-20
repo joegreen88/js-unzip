@@ -1,22 +1,39 @@
 h2. JSUnzip
 
-A javascript library for reading the contents of zip files.
-
-NOTE: Does not uncompress/inflate files. Zip is a package format that can use many different compression methods. See "Working with <code>JSUnzip.ZipEntry</code>" below.
+A javascript library for reading the contents of zip files. Also contains JSInflate.
 
 <pre><code>var myZip = ... // Get it with an XHR request, HTML5 files, etc.
 var unzipper = new JSUnzip(myZip);
 unzipper.isZipFile();      // true or false
+</code></pre>
 
-unzipper.readEntries();    // Creates "entries"
+h2. JSUnzip.readEntries()
+
+<pre><code>unzipper.readEntries();    // Creates "entries"
 unzipper.entries;          // Array of JSUnzip.ZipEntry objects.
 </code></pre>
 
-The test suite runs on Chrome 4, FireFox 3.6, IE7, Opera 10 and Safari 4.0.4. [TODO: Run tests on more browsers.]
+h2. JSUnzip.getEntry()
 
-h2. Download
+Provides a way to instanciate JSUnzip.ZipEntry objects one at a time without using <code>readEntries()</code>.
 
-"http://github.com/downloads/augustl/js-unzip/js-unzip.min.js":http://github.com/downloads/augustl/js-unzip/js-unzip.min.js
+<pre><code>var unzipper = new JSUnzip(myZip);
+for (e = unzipper.getEntry(); e !== false; e = unzipper.getEntry()) {
+	e; // JSUnzip.ZipEntry object
+}
+</code></pre>
+
+h2. JSUnzip.getEntry(<code>true</code>)
+
+Pass a <code>true</code> argument to get just the uncompressed, raw binary data from the JSUnzip.ZipEntry object.
+
+<pre><code>var unzipper = new JSUnzip(myZip);
+for (data = unzipper.getEntry(true); data !== false; data = unzipper.getEntry(true)) {
+	if (typeof(data) === "string") { // data will be null if the compression method used for the item is not applicable.
+		data; // A string containing the raw file data for the entry. Already decompressed/inflated where applicable. 
+	}
+}
+</code></pre>
 
 h2. Working with <code>JSUnzip.ZipEntry</code> objects
 
@@ -29,7 +46,7 @@ entry.fileName;          // The file name of the entry. Contains the full path.
                          // Examples:
                          //   "foo.txt"
                          //   "directory/bar.jpg"
-entry.data;              // The raw uncompressed data
+entry.data;              // The raw (compressed) data
 entry.compressionMethod; // Number representing compression method.
                          //   1: No compression. File can be used as-is.
                          //   8: DEFLATE. The most common compression method.
@@ -50,23 +67,18 @@ entry.isUzingZip64();    // Zip64 is for 4gb+ files. Not supported by this lib.
 
 See "http://www.pkware.com/documents/casestudies/APPNOTE.TXT":http://www.pkware.com/documents/casestudies/APPNOTE.TXT for more information about the Zip format, such as all the  compression methods.
 
-h2. Uncompressing with JSInflate
+h2. Uncompressing manually with JSInflate
 
-Almost all Zip files are compressed with the deflate algorithm. You can use "JSInflate":http://github.com/augustl/js-inflate to uncompress these Zips.
+Almost all Zip files are compressed with the deflate algorithm. You can use JSInflate, included, to uncompress these Zips.
 
 <pre><code>var blob = ...; // A HTML5 binary file, for example.
 var unzipper = new JSUnzip(blob);
 if (unzipper.isZipFile()) {
-
   unzipper.readEntries();
-
-  for (var i = 0; i < unzipper.entries.length; i++) {
-    var entry = unzipper.entries[i];
+  for (entry = unzipper.getEntry(); entry !== false; entry = unzipper.getEntry()) {
     if (entry.compressionMethod === 0) {
-      // Uncompressed
       var uncompressed = entry.data; 
     } else if (entry.compressionMethod === 8) {
-      // Deflated
       var uncompressed = JSInflate.inflate(entry.data);
     }
   }
@@ -74,10 +86,11 @@ if (unzipper.isZipFile()) {
 
 h2. Credits
 
+* August Lilleaas for the js-unzip and js-inflate libraries. https://github.com/augustl/js-unzip and https://github.com/augustl/js-inflate
 * Jacob Seidelin for his "JavaScript EXIF Reader":http://blog.nihilogic.dk/2008/05/reading-exif-data-with-javascript.html.
 * Jonas Höglund for his cute little "zip parser":http://etc.firefly.nu/js/zip/zipParser.js. 
 * "Cheeso" for his "js zip library":http://cheeso.members.winisp.net/srcview.aspx?dir=js-unzip&file=js-zip.zip.
 
 h2. About
 
-Written by August Lilleaas <august.lilleaas@gmail.com>. Licensed under the MIT license.
+Licensed under the MIT license.
